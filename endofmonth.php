@@ -1,54 +1,202 @@
 <?php
-	$link = new mysqli("localhost", "root", "", "account_oak") or die("Connect failed: %s\n". $conn -> error);
-	echo "Connected Successfully.<br>";
 
-	// $test_date = strtotime(date("2019-06-07"));
-	// echo "Date >> " . $test_date; return 0;
+require_once('../config.php');
+include('config.php');
+require_once($CFG->libdir . '/pagelib.php');
+global $PAGE;
+$PAGE->set_context(get_system_context());
+$PAGE->set_pagelayout('admin');
+$PAGE->set_title("End of Month");
+$PAGE->set_heading("End of Month");
+$PAGE->set_url($CFG->wwwroot.'/endofmonth.php');
 
-	$date = strtotime(date("Y-m-d"));
-	$income_accountid = 4;  // constant
-	$defer_incomeid = 9;  // constant
+$PAGE->navbar->ignore_active();
+$PAGE->navbar->add('End of Month', new moodle_url('endofmonth.php'));
 
-	$item_sql = "";
-
-	$sql = "SELECT entry.`name`,entry.`totalamount`,entry.`frequency`,entry.`id` AS journalentryid,item.`debit` AS user_payment,item.`journalid`,entry.`userid`,item.`productid`,item.`paymentid`,item.`invoiceid`,item.`id` AS itemid FROM `journal_item` AS item JOIN `journal_entry` AS entry ON item.`name` = entry.`name`
-		WHERE FROM_UNIXTIME(item.`createdon`,'%Y-%m-%d') > date_sub(now(), interval 1 month) AND item.`accountid`=3 AND item.`debit`>0 AND item.`eom_status`=0";
-
-	$result = $link->query($sql);
-
-	if ($result->num_rows > 0) {
-		echo "condition 1";
-	    // output data of each row
-	    while($row = $result->fetch_assoc()) {
-	        echo "Journal Entry ID for Payment is: " . $row["journalentryid"];
-
-	        $cost_per_month = $row["totalamount"] / $row["frequency"];
-
-	        // income amount
-			$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`credit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
-			VALUES ('$row[name]','$row[productid]','$cost_per_month','$income_accountid','$row[journalentryid]','$row[journalid]','$row[paymentid]','$row[invoiceid]','$date');";
-
-			// defer income amount
-			$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`debit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
-			VALUES ('$row[name]','$row[productid]','$cost_per_month','$defer_incomeid','$row[journalentryid]','$row[journalid]','$row[paymentid]','$row[invoiceid]','$date');";
-
-			$item_sql .= "UPDATE `journal_item` SET `eom_status`=1 WHERE id='$row[itemid]';";
-	    }
-
-	    echo " <br> SQL : " . $item_sql . "<br>";
-
-		if (mysqli_multi_query($link, $item_sql)) {
-			echo json_encode(array("statusCode"=>200));
-		} 
-		else {
-			echo json_encode(array("statusCode"=>201));
-		}
-		
-	} else {
-		echo "condition 2";
-		
-	}
-
-	mysqli_close($link);
-
+echo $OUTPUT->header();
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet"/>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+<style type="text/css">
+h2 {
+  display: inline-block;
+  text-align: left;
+  font-weight: 700;
+  font-size: 1.875rem;
+  margin-bottom: .5rem;
+  font-family: inherit;
+  line-height: 1.2;
+  color: inherit;
+}
+th {
+    text-align: inherit;
+    color: #306136;
+}
+</style>
+</head>
+<body>
+
+    <h2>End Of Month Status</h2>
+
+	<?php 
+	// Check connection
+	if($link === false){
+		 die("ERROR: Could not connect. " . mysqli_connect_error());
+	}
+	// Attempt select query execution
+	$sql = "SELECT `id`, `name`, `amount`, `createdon` FROM `journal_type`";
+	if($result = mysqli_query($link, $sql)){
+		if(mysqli_num_rows($result) > 0){ 
+	?>
+
+	<form action="endofmonth_query.php" method="post">
+	<input type="hidden" name="hidPaymentRowIndex" id="hidPaymentRowIndex" value=""/>
+
+		<table class="admintable generaltable" id="tbl_sss">
+			<thead>
+				<tr>
+					<th><input type="checkbox" id="checkAll"/></th>
+	            	<th>#</th>
+	                <th>Name</th>
+	                <th>Amount</th>
+	                <th>Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php
+				$count=1;
+				while($row = mysqli_fetch_array($result)){ ?>
+	                <tr>
+	                    <td><input type ="checkbox" class="checkbox" id="<?php echo $row['id'] ?>" name="rowid[]" onchange="PayStatusChanged(this)" /> </td>
+	                    <td><?php echo $count; ?></td>
+	                    <td><?php echo $row['name'] ?></td>
+	                    <td><?php echo $row['amount'] ?></td>
+	                    <td><?php echo $row['createdon'] ?></td>
+	                </tr>
+	            <?php $count++; } ?>
+			</tbody>
+		</table>
+
+		<button type="submit" class="btn btn-primary" id="submit" name="submit">Run EOM</button>
+	</form>
+
+<?php 
+	// Free result set
+	mysqli_free_result($result);
+} else{
+ 	echo "<em>No records were found.</em>";
+}} else{
+  	echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
+ }
+
+// Close connection
+mysqli_close($link);
+?>
+
+<script type="text/javascript">
+
+	$(document).ready(function(){
+		$('#checkAll').click(function(){
+			if (this.checked) {
+				$('.checkbox').each(function(){
+					this.checked = true;
+				});
+			} else {
+				$('.checkbox').each(function(){
+					this.checked = false;
+				});
+			}
+		});
+	});
+
+// function 
+function PayStatusChanged(a)
+{
+    if(a.checked == true)
+    {
+    	var table = document.getElementById("tbl_sss");
+		var rowId = a.parentNode.parentNode.rowIndex;
+		
+		var datas =document.getElementById("tbl_sss").rows[rowId].cells[2].innerHTML;
+		
+        var selectobject=document.getElementById("hidPaymentRowIndex");
+        var selectedrowindxs=$('#hidPaymentRowIndex').val();
+        if(selectedrowindxs==="")
+        {
+            selectobject.value=datas;
+        }
+        else
+        {
+            selectobject.value=selectedrowindxs+","+datas;
+        }
+    }
+    else if(a.checked == false)
+    {
+    	var table = document.getElementById("tbl_sss");
+        var rowId = a.parentNode.parentNode.rowIndex;
+
+        var datas =document.getElementById("tbl_sss").rows[rowId].cells[2].innerHTML;
+        
+        var selectobject=document.getElementById("hidPaymentRowIndex");
+        var selectedrowindxs=$('#hidPaymentRowIndex').val();
+        var str_arr = selectedrowindxs.split(",");
+		var arr = selectedrowindxs.split(",");
+
+		for( var i = 0; i < arr.length; i++){ 
+		   if ( Number(arr[i])  ===Number(datas)) {
+			 arr.splice(i, 1); 
+		   }
+		}
+        selectobject.value=arr.join();
+    }
+    alert($('#hidPaymentRowIndex').val());
+}
+
+// var dataString = "name=" + name + "&amount=" + amount + "&createdon=" + createdon + text;
+// var name="";
+// var amount="";
+// var createdon="";
+
+// $.ajax({  
+//   	url:"endofmonth_query.php",  
+//   	method:"POST",  
+//   	data:dataString,
+//   	success:function(data){ 
+//   	jsonData = JSON.parse(data);
+  
+//   	for(x in jsonData){
+// 	if( x == "row")
+// 	{
+// 		var count = Object.keys(jsonData.row).length;
+					
+// 					 if( count > 0)
+// 					 {
+// 						 for( var i=0; i<count; i++)
+// 						 {
+// 							var name=jsonData.row[i].name;
+// 							var amount = jsonData.row[i].amount;
+// 							var createdon = jsonData.row[i].createdon;
+							
+// 							var idx=s.row.add( [
+// 								name,
+// 								i+1,
+// 								amount,
+// 								createdon,
+// 							] ).draw(false).index();
+// 						 }
+// 					 }
+// 			}
+// 		}
+// 	} 
+// });
+
+</script>
+
+</body>
+</html>
