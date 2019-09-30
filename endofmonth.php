@@ -2,6 +2,7 @@
 
 require_once('../config.php');
 include('config.php');
+include('endofmonth_query.php');
 require_once($CFG->libdir . '/pagelib.php');
 global $PAGE;
 $PAGE->set_context(get_system_context());
@@ -44,18 +45,7 @@ th {
 
     <h2>End Of Month Status</h2>
 
-	<?php 
-	// Check connection
-	if($link === false){
-		 die("ERROR: Could not connect. " . mysqli_connect_error());
-	}
-	// Attempt select query execution
-	$sql = "SELECT `id`, `payment_no`, `monthly_amount`, `eom_date`, `status` FROM `eom_status`";
-	if($result = mysqli_query($link, $sql)){
-		if(mysqli_num_rows($result) > 0){ 
-	?>
-
-	<form action="" method="post">
+	<form action="endofmonth_query.php" method="post">
 	<input type="hidden" name="hidPaymentRowIndex" id="hidPaymentRowIndex" value=""/>
 
 		<table class="admintable generaltable" id="tbl_sss">
@@ -74,7 +64,7 @@ th {
 				$count=1;
 				while($row = mysqli_fetch_array($result)) { ?>
 	                <tr>
-	                    <td><input type ="checkbox" class="checkbox" id="<?php echo $row['id'] ?>" name="rowid[]" onchange="PayStatusChanged(this)" /></td>
+	                    <td><input type ="checkbox" class="checkbox" id="<?php echo $row['id'] ?>" name="id[]" onchange="PayStatusChanged(this)" /></td>
 	                    <td><?php echo $count; ?></td>
 	                    <td><?php echo $row['payment_no'] ?><input type ="hidden" id="<?php echo $row['payment_no'] ?>" /></td>
 	                    <td><?php echo $row['monthly_amount'] ?><input type ="hidden" id="<?php echo $row['monthly_amount'] ?>" /></td>
@@ -89,16 +79,9 @@ th {
 	</form>
 
 <?php 
-	// Free result set
-	mysqli_free_result($result);
-} else{
- 	echo "<em>No records were found.</em>";
-}} else{
-  	echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
- }
-
 // Close connection
 mysqli_close($link);
+echo $OUTPUT->footer();
 ?>
 
 <script type="text/javascript">
@@ -168,19 +151,18 @@ function PayStatusChanged(a)
 
 function val()
 {
-    var payment_no=document.getElementById("payment_no").value;
-    var monthly_amount=document.getElementById("monthly_amount").value;
-    var eom_date=document.getElementById("eom_date").value;
+    var payment_no = document.getElementById("payment_no").value;
+    var monthly_amount = document.getElementById("monthly_amount").value;
+    var eom_date = document.getElementById("eom_date").value;
+
+    var dataString = "payment_no=" + payment_no + "&monthly_amount=" + monthly_amount + "&eom_date=" + eom_date;
+
     if(payment_no == '')
-    {
-        alert(payment_no+" is empty");
-    }
-    else
     {
 	    $.ajax({
 	        type:"POST",
 	        url:"endofmonth_query.php",
-	        data: "{'payment_no':'" + payment_no + "','monthly_amount':'" + monthly_amount + "','eom_date':'" + eom_date + "'}",
+	        data: dataString,
 	        cache:false,
 	        success:function(html){
 	            alert(data);
