@@ -1,6 +1,6 @@
 <?php
   	$link = new mysqli("localhost", "root", "", "account_oak") or die("Connect failed: %s\n". $link -> error);
-  	
+
 	$sql = "SELECT * FROM `eom_status`";
   	$result = mysqli_query($link, $sql);
 ?>
@@ -33,9 +33,9 @@
 			while($row = mysqli_fetch_array($result)) { ?>
 	      <tr id="6" role="row" class="odd">
 	        <td data-content="ratio"><?php echo $count; ?></td>
-	        <td class="sorting_1" data-content="domain"><?php echo $row['payment_no'] ?></td>
-	        <td class="sorting_1" data-content="matched"><?php echo $row['monthly_amount'] ?></td>
-	        <td class="sorting_1" data-content="matched"><?php echo $row['eom_date'] ?></td>
+	        <td class="sorting_1" data-content="domain" id="<?php echo $row['payment_no'] ?>"><?php echo $row['payment_no'] ?></td>
+	        <td class="sorting_1" data-content="matched" id="<?php echo $row['monthly_amount'] ?>"><?php echo $row['monthly_amount'] ?></td>
+	        <td class="sorting_1" data-content="matched" id="<?php echo $row['eom_date'] ?>"><?php echo $row['eom_date'] ?></td>
 	        <td><input name="id[]" value="" type="checkbox"></td>
 	      </tr>
 	    <?php $count++; } ?>
