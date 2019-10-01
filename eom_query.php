@@ -3,78 +3,85 @@
 
   	echo "Connected Successfully.<br>";
   	echo "Form Data >> " . $_POST["formdata"];
+	
+        // Check if any option is selected 
+        if(isset($_POST["formdata"]))
+        { 
+        	$name = $credit = $debit = $date = "";
 
-	$form_data = $_POST["formdata"];
-	$temp_row = explode('|', $form_data);
-	$row = [];
+        	$income_accountid = 4;  // constant
+			$defer_incomeid = 9;  // constant
+			$productid = 1;  // constant
+			$journalid = 1;  // constant
+			$paymentid = 1;  // constant
+			$invoiceid = 1;  // constant
+			$journalentryid = 0;
 
-	for ($i=0; $i < count($temp_row)-1; $i++) { 
-		echo "i : value >> " . $i . "<br/>";
-		$row[$i] = explode(',', $temp_row[$i]);
-		foreach ($row[$i] as $value) {
-			echo "VAlue >> " . $value . "<br/>";
-		}
-	}
-	return 0;
+			$item_sql = "";
 
-    // Check if form is submitted successfully 
-   //  if(isset($_POST["submit"]))  
-   //  { 
-   //      // Check if any option is selected 
-   //      if(isset($_POST["stdid"]) && ($_POST["name"]) && ($_POST["amount"]) && ($_POST["createdon"]))
-   //      { 
-   //      	$name = $_POST["name"];
-   //      	$credit = $_POST["amount"];
-   //      	$debit = $_POST["amount"];
-   //      	$date = $_POST["createdon"];
-   //      	$income_accountid = 4;  // constant
-			// $defer_incomeid = 9;  // constant
-			// $productid = 1;  // constant
-			// $journalid = 1;  // constant
-			// $paymentid = 1;  // constant
-			// $invoiceid = 1;  // constant
-			// $journalentryid = 0;
+        	$form_data = $_POST["formdata"];
+			$temp_row = explode('|', $form_data);
+			$row = [];
 
-			// $item_sql = "";
+			for ($i=0; $i < count($temp_row)-1; $i++) { 
+				echo "<br/> i : value >> " . $i . "<br/>";
 
-   //          // Retrieving each selected option 
-   //          for ($i=0; $i < sizeof($_POST["stdid"]); $i++) {
+				$row[$i] = explode(',', $temp_row[$i]);
+				$j = 0;
+				foreach ($row[$i] as $value) {
+					echo "VAlue >> " . $value . "<br/>";
 
-   //          	$check_paymentno_sql = "SELECT * FROM `journal_entry` WHERE `name` = '$name[$i]' ORDER BY id DESC LIMIT 1";
-   //          	$result = $link->query($check_paymentno_sql);
+					switch ($j) {
+					    case 0:
+					        $name = $value;
+					        break;
+					    case 1:
+					        $credit = $debit = $value;
+					        break;
+					    case 2:
+					        $date = $value;
+					        break;
+					    default:
+					        echo "Something wrong!";
+					}
+					$j++;
+				}
 
-			// 	if ($result->num_rows > 0) {
-			// 	    // output data of each row
-			// 	    while($row = $result->fetch_assoc()) {
-			// 	        $journalentryid = $row["id"];
-	  //       			echo "Journal Entry ID for Payment is: " . $journalentryid;
-			// 	    }
-			// 	}
-            	      			
-	  //     		// income amount
-			// 	$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`credit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
-			// 	VALUES ('$name[$i]','$productid','$credit[$i]','$income_accountid','$journalentryid','$journalid','$paymentid','$invoiceid','$date[$i]');";
+				// Retrieve Journal_entry id
+            	$check_paymentno_sql = "SELECT * FROM `journal_entry` WHERE `name` = '$name' ORDER BY id DESC LIMIT 1";
+            	$result = $link->query($check_paymentno_sql);
 
-			// 	// defer income amount
-			// 	$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`debit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
-			// 	VALUES ('$name[$i]','$productid','$debit[$i]','$defer_incomeid','$journalentryid','$journalid','$paymentid','$invoiceid','$date[$i]');";
+				if ($result->num_rows > 0) {
+				    // output data of each row
+				    while($row = $result->fetch_assoc()) {
+				        $journalentryid = $row["id"];
+	        			echo "Journal Entry ID for Payment is: " . $journalentryid;
+				    }
+				}
 
-			// 	$journalentryid = 0;
-   //          }
-   //          echo " <br> SQL : " . $item_sql . "<br>";
+				// income amount
+				$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`credit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
+				VALUES ('$name','$productid','$credit','$income_accountid','$journalentryid','$journalid','$paymentid','$invoiceid','$date');";
 
-			// if (mysqli_multi_query($link, $item_sql)) {
-			// 	echo json_encode(array("statusCode"=>200));
-			// } 
-			// else {
-			// 	echo json_encode(array("statusCode"=>201));
-			// }
+				// defer income amount
+				$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`debit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
+				VALUES ('$name','$productid','$debit','$defer_incomeid','$journalentryid','$journalid','$paymentid','$invoiceid','$date');";
 
-			// mysqli_close($link);
-   //      } 
-   //  else
-   //      echo "Select an option first !!"; 
-   //  } 
-   //  return 0;
+				$journalentryid = 0;
+			}
+
+            echo " <br> SQL : " . $item_sql . "<br>";
+
+			if (mysqli_multi_query($link, $item_sql)) {
+				echo json_encode(array("statusCode"=>200));
+			} 
+			else {
+				echo json_encode(array("statusCode"=>201));
+			}
+
+			mysqli_close($link);
+	    } 
+	    else
+	        echo "Select an option first !!"; 
 
 ?>
