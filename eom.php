@@ -15,8 +15,8 @@
 <body>
 
 <form id="test-form" action="eom_query.php" method="post">
-  	<input type="hidden" name="formdata" id="formdata" value="">
-  <table class="table table-bordered">
+  <input type="hidden" name="formdata" id="formdata" value="">
+  <table class="table table-bordered" id="tbl">
   	<!-- <input type="hidden" name="data"> -->
     <thead>
       <tr>
@@ -83,10 +83,15 @@ mysqli_close($link);
 	  // The following selector gets all the rows
 	  //   that have a CHECKED checkbox. Note I
 	  //   don't get the checkbox, simply the row.
-	  var rowEls = $("#test-form").find("tr:has(input[type='checkbox']:checked) ");
+	  var rowEls = $("#test-form").find("tr:has(input[type='checkbox']:checked)");
 	  
 	  // For every row, we'll add to our string...
 	  rowEls.each(function(){
+        if ($("#chkAll").is(":checked")) {
+        	// window.alert("check all");
+        	$("#tbl tr:first").remove(); 
+        	return;
+        }
 	    var rowEl = $(this);
 	    
 	    // First, a row id
@@ -97,11 +102,12 @@ mysqli_close($link);
 	    //  HAS A data-content ATTRIBUTE. This
 	    //  way, we don't get the remove/keep.
 	    cells.each(function(){
-	      if($(this).data("content")){
+          if ($(this).is(':first-child')) {return;}
+	      else if($(this).data("content")){
 	        // returnString += $(this).data("content")+"="+$(this).text();
 	        returnString += $(this).text();
 	         // if ($(this).is(':last-child')) {returnString += " | ";}
-	         if ($(this).is(':nth-last-child(2)')) {returnString += "";}
+	        if ($(this).is(':nth-last-child(2)')) {returnString += "";}
 	        else {returnString += " , ";}
 
 	      }
