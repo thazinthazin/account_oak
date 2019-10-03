@@ -49,6 +49,7 @@
 
 				// Retrieve Journal_entry id
             	$check_paymentno_sql = "SELECT * FROM `journal_entry` WHERE `name` = '$name' ORDER BY id DESC LIMIT 1";
+            	// echo $check_paymentno_sql . "<br>";
             	$result = $link->query($check_paymentno_sql);
 
 				if ($result->num_rows > 0) {
@@ -58,6 +59,8 @@
 	        			echo "Journal Entry ID for Payment is: " . $journalentryid;
 				    }
 				}
+
+				$item_sql .= "UPDATE `eom_status` SET `status`=1 WHERE `payment_no`='$name' AND `eom_date`='$date';";
 
 				// income amount
 				$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`credit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
