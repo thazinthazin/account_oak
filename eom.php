@@ -1,7 +1,7 @@
 <?php
   	$link = new mysqli("localhost", "root", "", "account_oak") or die("Connect failed: %s\n". $link -> error);
 
-	$sql = "SELECT * FROM `eom_status`";
+	$sql = "SELECT * FROM `eom_status` WHERE status=0 ";
   	$result = mysqli_query($link, $sql);
 ?>
 
@@ -9,7 +9,7 @@
 <html>
 <head>
 	<title>EOM Status</title>
-	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+	<!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/> -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
 <body>
@@ -73,7 +73,7 @@ mysqli_close($link);
 	$("button").on("click", function(event){
 	  event.stopPropagation();
 	  event.preventDefault();
-	})
+	});
 
 	// Now, when we click save, I want to format
 	//  a string.
@@ -108,12 +108,12 @@ mysqli_close($link);
 	        returnString += $(this).text();
 	         // if ($(this).is(':last-child')) {returnString += " | ";}
 	        if ($(this).is(':nth-last-child(2)')) {returnString += "";}
-	        else {returnString += " , ";}
+	        else {returnString += ",";}
 
 	      }
 	    })
 	    
-	    returnString += " | ";
+	    returnString += "|";
 	  })
 	  
 	  console.log(returnString);
