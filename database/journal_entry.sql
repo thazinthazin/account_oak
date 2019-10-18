@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 18, 2019 at 12:16 PM
+-- Generation Time: Oct 18, 2019 at 12:59 PM
 -- Server version: 10.1.32-MariaDB
 -- PHP Version: 7.2.5
 
@@ -52,8 +52,8 @@ CREATE TABLE `journal_entry` (
 INSERT INTO `journal_entry` (`id`, `name`, `ref`, `code`, `date`, `journalid`, `journalcode`, `state`, `userid`, `totalamount`, `createdby`, `modifiedby`, `createdon`, `modifiedon`) VALUES
 (1, '7', NULL, NULL, 1571247000, 7, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
 (2, '2', NULL, NULL, 1571247000, 7, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
-(3, '4', NULL, NULL, 1571247000, 7, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
-(4, '5', NULL, NULL, 1571247000, 7, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
+(3, '4', NULL, NULL, 1571247000, 6, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
+(4, '5', NULL, NULL, 1571247000, 6, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
 (5, '8', NULL, NULL, 1571247000, 7, NULL, NULL, 2, 55000, NULL, NULL, NULL, NULL),
 (6, '1201862', NULL, NULL, 1571307803, 9, NULL, NULL, 2, 9000, NULL, NULL, NULL, NULL),
 (7, '12018115', NULL, NULL, 1571307803, 9, NULL, NULL, 2, 180000, NULL, NULL, NULL, NULL),
