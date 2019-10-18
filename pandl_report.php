@@ -59,7 +59,7 @@ th {
           JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
           JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
           JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
-          WHERE coa.`id` = 10 ";
+          WHERE coa.`id` = 10 GROUP BY acj.`name`";
         $result = mysqli_query($link, $sql);
 
         while($row = mysqli_fetch_array($result)) { ?>
