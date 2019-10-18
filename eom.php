@@ -1,7 +1,21 @@
 <?php
-  	$link = new mysqli("localhost", "root", "", "account_oak") or die("Connect failed: %s\n". $link -> error);
 
-	$sql = "SELECT * FROM `eom_status` WHERE status=0 ";
+	require_once('../config.php');
+	include('config.php');
+	require_once($CFG->libdir . '/pagelib.php');
+	global $PAGE;
+	$PAGE->set_context(get_system_context());
+	$PAGE->set_pagelayout('admin');
+	$PAGE->set_title("End of Month");
+	$PAGE->set_heading("End of Month");
+	$PAGE->set_url($CFG->wwwroot.'/eom.php');
+
+	$PAGE->navbar->ignore_active();
+	$PAGE->navbar->add('End of Month', new moodle_url('eom.php'));
+
+	echo $OUTPUT->header();
+
+	$sql = "SELECT * FROM `eom_status` WHERE status=0";
   	$result = mysqli_query($link, $sql);
 ?>
 
@@ -12,11 +26,29 @@
 	<!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/> -->
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 </head>
+<style type="text/css">
+h2 {
+  display: inline-block;
+  text-align: left;
+  font-weight: 700;
+  font-size: 1.875rem;
+  margin-bottom: .5rem;
+  font-family: inherit;
+  line-height: 1.2;
+  color: inherit;
+}
+th {
+    text-align: inherit;
+    color: #306136;
+}
+</style>
 <body>
+
+	<h2>End Of Month Status</h2>
 
 <form id="test-form" action="eom_query.php" method="post">
   <input type="hidden" name="formdata" id="formdata" value="">
-  <table class="table table-bordered" id="tbl">
+  <table class="table table-bordered admintable generaltable" id="tbl">
   	<!-- <input type="hidden" name="data"> -->
     <thead>
       <tr>
@@ -41,11 +73,13 @@
 	    <?php $count++; } ?>
     </tbody>
   </table>
-  <button class="btn btn-success" type="submit" value="save">Run EOM</button>
+  <button class="btn btn-primary" type="submit" value="save">Run EOM</button>
 </form>
 
 <?php 
+// Close connection
 mysqli_close($link);
+echo $OUTPUT->footer();
 ?>
 
 <script type="text/javascript">
@@ -57,7 +91,7 @@ mysqli_close($link);
 	                 checkboxes[i].checked = true;
 	             }
 	         }
-	         alert("All checked");
+	         // alert("All checked");
 	     } else {
 	         for (var i = 0; i < checkboxes.length; i++) {
 	             console.log(i)
@@ -65,16 +99,14 @@ mysqli_close($link);
 	                 checkboxes[i].checked = false;
 	             }
 	         }
-	         alert("Unchecked");
+	         // alert("Unchecked");
 	     }
 	}
-
 	// First, I'm stopping the default behaviors
 	$("button").on("click", function(event){
 	  event.stopPropagation();
 	  event.preventDefault();
 	});
-
 	// Now, when we click save, I want to format
 	//  a string.
 	$("button[value='save']").on("click", function(){
@@ -109,7 +141,6 @@ mysqli_close($link);
 	         // if ($(this).is(':last-child')) {returnString += " | ";}
 	        if ($(this).is(':nth-last-child(2)')) {returnString += "";}
 	        else {returnString += ",";}
-
 	      }
 	    })
 	    

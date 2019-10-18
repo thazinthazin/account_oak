@@ -1,45 +1,62 @@
 <?php
-	include 'config.php';
 
-	$conn = OpenCon();
-	$link = new mysqli("localhost", "root", "", "account_oak") or die("Connect failed: %s\n". $conn -> error);
-	echo "Connected Successfully.<br>";
+	// $link = new mysqli("localhost", "root", "", "thuyeindb") or die("Connect failed: %s\n". $conn -> error);
+	include('config.php');
+	// echo "Connected Successfully.<br>";
 
-	$name = "tester2";
-	$ref = "ref1";
-	$code = "S1";
-	$state = "state";
-	$amount = "200";
-	$testdate = "2019-09-07";
-	$date = $createdon = $modifiedon = strtotime($testdate);
-	$journalcode = "tes";
-	$createdby = 1;
-	$modifiedby = 2;
-	// print "String date" . $date . "<br>";
-	// print "Covert date" . date('Y-m-d', $date+36000) . "<br>";
-	// return $date;
+	    // Check if form is submitted successfully 
+    if(isset($_POST["submit"]))
+    { 
+        // Check if any option is selected 
+        if(isset($_POST["Description1"]) && ($_POST["Amount1"]) && ($_POST["Date1"]) && ($_POST["Journal1"]))
+        { 
 
-	// $name = $_POST['name'];
-	// $ref = $_POST['ref'];
-	// $date = strtotime($_POST['date']);
-	// $journalid = $_POST['journal'];
-	// $state = $_POST['state'];
-	// $userid = $_POST['user'];
-	// $amount = $_POST['amount'];
+			$name = $_POST['Description1'];
+			$totalamount = $_POST['Amount1'];
+			$date = strtotime($_POST['Date1']);
+			$journalid = $_POST['Journal1'];
+			$userid = 2;
+			$productid = $paymentid = $invoiceid = 1;
+			$cash_accountid = 5;  // constant
+			$expense_accountid = 3;   // constant
+			$journalentryid = 0;
+			$item_sql = "";
 
-	$sql = "INSERT INTO `journal_entry`( `name`, `ref`,`code`, `date`, `state`, `totalamount`,`journalcode`,`createdby`,`modifiedby`,`createdon`,`modifiedon`) 
-	VALUES ('$name','$ref','$code','$date','$state','$amount','$journalcode','$createdby','$modifiedby','$createdon','$modifiedon')";
+			$sql = "INSERT INTO `journal_entry`(`name`,`date`,`journalid`,`userid`,`totalamount`) 
+			VALUES ('$name','$date','$journalid','$userid','$totalamount');";
 
-	// echo "SQL : " . $sql;
+			if (mysqli_query($link, $sql)) {
+			    $journalentryid = mysqli_insert_id($link);
+			    echo "New record created successfully. Last inserted ID is: " . $journalentryid;
+			} else {
+			    echo "Error: " . $sql . "<br>" . mysqli_error($link);
+			}
 
-	if (mysqli_query($link, $sql)) {
-		echo json_encode(array("statusCode"=>200));
-	} 
-	else {
-		echo json_encode(array("statusCode"=>201));
-	}
+			$item_sql = "";
 
-	// mysqli_close($link);
+			// expense amount
+			$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`debit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
+			VALUES ('$name','$productid','$totalamount','$expense_accountid','$journalentryid','$journalid','$paymentid','$invoiceid','$date');";
 
-	CloseCon($conn);
+			// cash amount
+			$item_sql .= "INSERT INTO `journal_item`(`name`,`productid`,`credit`,`accountid`,`journalentryid`,`journalid`,`paymentid`,`invoiceid`,`createdon`)
+			VALUES ('$name','$productid','$totalamount','$cash_accountid','$journalentryid','$journalid','$paymentid','$invoiceid','$date');";
+
+			echo " <br> SQL : " . $item_sql . "<br>";
+
+			if (mysqli_multi_query($link, $item_sql)) {
+				echo json_encode(array("statusCode"=>200));
+			} 
+			else {
+				echo json_encode(array("statusCode"=>201));
+			}
+
+			mysqli_close($link);
+		}
+    else
+        echo "Select an option first !!"; 
+    } 
+	
+	header("location:entry_form.php");
+    // return 0;
 ?>
