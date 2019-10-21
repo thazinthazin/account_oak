@@ -22,8 +22,6 @@ echo $OUTPUT->header();
 <head>
     <meta charset="UTF-8">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet"/>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
 <style type="text/css">
 h2 {
   display: inline-block;
@@ -46,11 +44,28 @@ th {
     <div class="row">
       <h2 class="pull-left">Profit & Loss Report</h2>
     </div>
+
+    <div class="col-md-2">
+      <div class="form-group">
+        <label for="from_date">Start Date</label>
+        <input type="text" id="from_date" class="form-control" name="from_date">
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="form-group">
+        <label for="to_date">End Date</label>
+        <input type="text" id="to_date" class="form-control" name="to_date">
+      </div>
+    </div>
+
+    <button type="submit" id="filter" class="btn btn-primary" name="filter">Filter</button>
     
     <div class="row">
       <h3 class="pull-left">Income</h3>
     </div>
 
+    <div id="order_table">
      <table class="table">
       <tbody>
         <?php
@@ -94,6 +109,7 @@ th {
         <?php } ?>
       </tbody>
     </table>
+  </div>
 
 <?php
 // Close connection
@@ -103,7 +119,35 @@ echo $OUTPUT->footer();
 ?>
 
 <script type="text/javascript">
-
+  $(document).ready(function(){
+    $.datepicker.setDefaults({
+      dateFormat:'yy-mm-dd'
+    });
+    $(function(){
+      $("#from_date").datepicker();
+      $("#to_date").datepicker();
+    });
+    $('#filter').click(function(){
+      var from_date = $('#from_date').val();
+      var to_date = $('#to_date').val();
+      if (from_date != '' && to_date != '')
+      {
+        $.ajax({
+          url : "p&l_report.php",
+          method : "POST",
+          data : {from_date:from_date, to_date:to_date},
+          success:function(data)
+          {
+            $('#order_table').html(data);
+          }
+        });
+      }
+      else
+      {
+        alert("Please Select Date");
+      }
+    })
+  });
 </script>
 
 </body>
