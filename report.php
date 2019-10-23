@@ -29,51 +29,70 @@ $sql = "SELECT ji.`productid`,jt.`name`, jt.`totalamount`, acj.`name` AS journal
         FROM `journal_entry` AS jt
         JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
         JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
-        JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`";
-
+        JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
+        ORDER BY jt.`name` ASC;";
+// echo $sql . "<br/>";
           if($result_all = mysqli_query($link, $sql))
           {
             if(mysqli_num_rows($result_all) > 0)
             {
+              $sql_title = '';
+              $tmpArr=[];
+              $i = 0;
               while($row=mysqli_fetch_assoc($result_all))
               {
                  $jname=$row["journalname"];
-                 $tmpArr=[];
-                 $tmpArr["name"]=$row["name"];
-                 $tmpArr["totalamount"]=$row["totalamount"];
-                 $tmpArr["journalname"]=$row["journalname"];
-                 $tmpArr["createdon"]=$row["createdon"];
-                 $tmpArr["debit"]=$row["debit"];
-                 $tmpArr["credit"]=$row["credit"];
-                 $tmpArr["coaname"]=$row["coaname"];
-                 $sql_title = "";
+                 $tmpArr[$i]["name"]=$row["name"];
+                 $tmpArr[$i]["totalamount"]=$row["totalamount"];
+                 $tmpArr[$i]["journalname"]=$row["journalname"];
+                 $tmpArr[$i]["createdon"]=$row["createdon"];
+                 $tmpArr[$i]["debit"]=$row["debit"];
+                 $tmpArr[$i]["credit"]=$row["credit"];
+                 $tmpArr[$i]["coaname"]=$row["coaname"];
+                 $tmpArr[$i]["title"] = '';
 
                  if($jname===$coursefee)
                  {
-                  $sql_title = "SELECT mc.`fullname` AS title FROM `mdl_course` mc WHERE mc.`id`=".$row["productid"];
+                  $sql_title = "SELECT mc.`fullname` AS title FROM `mdl_course` AS mc WHERE mc.`id`=".$row["productid"].";";
+                 }
+                 if($jname===$registerfee)
+                 {
+                  $sql_title = "SELECT mc.`fullname` AS title FROM `mdl_course` AS mc WHERE mc.`id`=".$row["productid"].";";
                  }
                  else if($jname===$payroll)
                  {
                   $sql_title = "SELECT CONCAT(u.`firstname`,' ', u.`lastname`,'(' ,p.`pay_month`,' ',p.`pay_year`,')') AS title
-                              FROM `mdl_basic_salary_payroll` p 
-                              join `mdl_user` u on p.`userid`=u.`id` WHERE p.`id`=".$row["productid"];
+                              FROM `mdl_basic_salary_payroll` AS p 
+                              join `mdl_user` AS u ON p.`userid`=u.`id` WHERE p.`id`=".$row["productid"].";";
                  }
-
+                 else if($jname===$salaries)
+                 {
+                  $sql_title = "SELECT CONCAT(u.`firstname`,' ', u.`lastname`,'(' ,p.`pay_month`,' ',p.`pay_year`,')') AS title
+                              FROM `mdl_basic_salary_payroll` AS p 
+                              join `mdl_user` AS u ON p.`userid`=u.`id` WHERE p.`id`=".$row["productid"].";";
+                 }
+                 else if($jname===$uniform)
+                 {
+                  $sql_title = "SELECT CONCAT(u.`firstname`,' ', u.`lastname`,'(' ,p.`pay_month`,' ',p.`pay_year`,')') AS title
+                              FROM `mdl_basic_salary_payroll` AS p 
+                              join `mdl_user` AS u ON p.`userid`=u.`id` WHERE p.`id`=".$row["productid"].";";
+                 }
+                 
                   if($result_title= mysqli_query($link, $sql_title))
                   {
                     if(mysqli_num_rows($result_title) > 0)
                     {
                       while($rowT=mysqli_fetch_assoc($result_title))
                       {
-                        $tmpArr["title"]=$rowT["title"];
+                        $tmpArr[$i]["title"]=$rowT["title"];
                       }
                     }
                   }
                   $ArrFinal[]=$tmpArr;
+                  $i++;
               }
             }
           }
-
 ?>
 
 <!DOCTYPE html>
@@ -94,10 +113,6 @@ h2 {
   line-height: 1.2;
   color: inherit;
 }
-th {
-    text-align: inherit;
-    color: #306136;
-}
 </style>
 </head>
 <body>
@@ -110,7 +125,7 @@ th {
         <th>#</th>
           <th>Payment No</th>
           <th>Journal</th>
-          <th>Course</th>
+          <th>Title</th>
           <th>Monthly Amount</th>
           <th>Debit Amount</th>
           <th>Credit Amount</th>
@@ -121,17 +136,17 @@ th {
       <tbody>
         <?php
         $count=1;
-        while($row = mysqli_fetch_array($result)) { ?>
+        foreach ($tmpArr as $value) { ?>
           <tr>
             <td><?php echo $count; ?></td>
-            <td><?php echo $row['name'] ?></td>
-            <td><?php echo $row['journalname'] ?></td>
-            <td><?php echo $row['title'] ?></td>
-            <td><?php echo $row['totalamount'] ?></td>
-            <td><?php echo $row['debit'] ?></td>
-            <td><?php echo $row['credit'] ?></td>
-            <td><?php echo $row['coaname'] ?></td>
-            <td><?php echo $row['createdon'] ?></td>
+            <td><?php echo $value['name'] ?></td>
+            <td><?php echo $value['journalname'] ?></td>
+            <td><?php echo $value['title'] ?></td>
+            <td><?php echo $value['totalamount'] ?></td>
+            <td><?php echo $value['debit'] ?></td>
+            <td><?php echo $value['credit'] ?></td>
+            <td><?php echo $value['coaname'] ?></td>
+            <td><?php echo $value['createdon'] ?></td>
           </tr>
         <?php $count++; } ?>
       </tbody>
@@ -140,8 +155,16 @@ th {
 <?php
 // Close connection
 mysqli_close($link);
-
 echo $OUTPUT->footer();
+
+// $x = 0;
+// foreach ($tmpArr as $value) {
+//   echo "No : " . $x . "<br/>";
+//   echo "Name >> " . $value["name"] . "<br/>";
+//   echo "totalamount >> " . $value["totalamount"] . "<br/>";
+//   echo "title >> " . $value["title"] . "<br/>";
+//   $x++;
+// }
 ?>
 
 <script type="text/javascript">
