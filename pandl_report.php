@@ -1,5 +1,4 @@
 <?php
-
 require_once('../config.php');
 include('config.php');
 require_once($CFG->libdir . '/pagelib.php');
@@ -9,12 +8,9 @@ $PAGE->set_pagelayout('admin');
 $PAGE->set_title("P & L Report");
 $PAGE->set_heading("P & L Report");
 $PAGE->set_url($CFG->wwwroot.'/pandl_report.php');
-
 $PAGE->navbar->ignore_active();
 $PAGE->navbar->add('P & L Report', new moodle_url('pandl_report.php'));
-
 echo $OUTPUT->header();
-
 ?>
 
 <!DOCTYPE html>
@@ -36,10 +32,14 @@ h2 {
   line-height: 1.2;
   color: inherit;
 }
+.btn {
+    margin-top: 24px;
+}
 </style>
 </head>
 <body>
 
+<div class="container" style="overflow-x: hidden;">
 <div class="row">
   <h2 class="pull-left">Profit & Loss Report</h2>
 </div>
@@ -69,21 +69,27 @@ h2 {
   <button type="submit" id="filter" class="btn btn-primary" name="filter">Filter</button>
 </form>
     
-    <div class="row">
+    <!-- <div class="row">
       <h3 class="pull-left">Income</h3>
-    </div>
+    </div> -->
 
     <div id="order_table">
 
+     <table class="table table-bordered">
       <?php 
         // totalIncome($link, '2019-08-01','2019-10-30');
         // totalIncome($link, '','');
         totalIncome($link, $startDate, $endDate);
-
       function totalIncome($link, $startDate='', $endDate=''){
       ?>
 
-     <table class="table">
+      <thead>
+        <tr>
+          <th>Income</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
         <?php
         $sql = "SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
@@ -97,34 +103,55 @@ h2 {
           }
           
           $sql .= "GROUP BY acj.`name`";
-
           // echo $sql . "<br/>";
-
         $result = mysqli_query($link, $sql);
         while($row = mysqli_fetch_array($result)) { ?>
           <tr>
             <td><?php echo $row['journalname'] ?></td>
             <td><?php echo $row['amount'] ?></td>
+            <td></td>
           </tr>
         <?php } ?>
+        <th style="text-align: right;">Total Income</th>
+        <th></th>
+        
+        <?php
+        $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
+          FROM `journal_entry` AS jt
+          JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
+          JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
+          JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
+          WHERE coa.`id` = 10 ";
+          if ($startDate != '' && $endDate != '') {
+            $sql .= "AND FROM_UNIXTIME(ji.`createdon`,'%Y-%m-%d') BETWEEN '$startDate' AND '$endDate' ";
+          }
+          
+          $sql .= "GROUP BY acj.`name`) A";
+          // echo $sql . "<br/>";
+        $result = mysqli_query($link, $sql);
+        while($row = mysqli_fetch_array($result)) { ?>
+            <th><?php echo $row['totalamount'] ?></th>
+        <?php } ?>
       </tbody>
-    </table>
-
   <?php } ?>
 
-    <div class="row">
+    <!-- <div class="row">
       <h3 class="pull-left">Expenses</h3>
-    </div>
+    </div> -->
 
     <?php 
      // totalExpense($link, '2019-08-01','2019-10-30');
         // totalExpense($link, '','');
     totalExpense($link, $startDate, $endDate);
-
     function totalExpense($link, $startDate='', $endDate=''){
     ?>
-
-     <table class="table">
+      <thead>
+        <tr>
+          <th>Expenses</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
         <?php
         $sql = "SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, SUM(coa.`name`) AS coaname
@@ -138,21 +165,77 @@ h2 {
           }
           
           $sql .= "GROUP BY acj.`name`";
-
           // echo $sql . "<br/>";
-
         $result = mysqli_query($link, $sql);
         while($row = mysqli_fetch_array($result)) { ?>
           <tr>
             <td><?php echo $row['journalname'] ?></td>
             <td><?php echo $row['amount'] ?></td>
+            <td></td>
           </tr>
         <?php } ?>
-      </tbody>
-    </table>
+        <th style="text-align: right;">Total Expenses</th>
+        <th></th>
 
+        <?php
+        $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, SUM(coa.`name`) AS coaname
+          FROM `journal_entry` AS jt
+          JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
+          JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
+          JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
+          WHERE coa.`id` = 3 ";
+          if ($startDate != '' && $endDate != '') {
+            $sql .= "AND FROM_UNIXTIME(ji.`createdon`,'%Y-%m-%d') BETWEEN '$startDate' AND '$endDate' ";
+          }
+          
+          $sql .= "GROUP BY acj.`name`) A";
+          // echo $sql . "<br/>";
+        $result = mysqli_query($link, $sql);
+        while($row = mysqli_fetch_array($result)) { ?>
+            <th><?php echo $row['totalamount'] ?></th>
+        <?php } ?>
+      </tbody>
     <?php } ?>
 
+    <?php 
+     // totalExpense($link, '2019-08-01','2019-10-30');
+        // totalExpense($link, '','');
+    totalPandL($link, $startDate, $endDate);
+    function totalPandL($link, $startDate='', $endDate=''){
+    ?>
+      <thead>
+        <tr>
+          <th>Total Profit & Loss</th>
+          <th></th>
+        <?php
+        $sql = "SELECT (SUM(A.`amount`) - SUM(B.`amount`)) AS totalpandl
+              FROM( SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
+              FROM `journal_entry` AS jt
+              JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
+              JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
+              JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
+              WHERE coa.`id` = 10 GROUP BY acj.`name`) A
+              JOIN ( SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, SUM(coa.`name`) AS coaname
+              FROM `journal_entry` AS jt
+              JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
+              JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
+              JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
+              WHERE coa.`id` = 3 GROUP BY acj.`name`) B ";
+          if ($startDate != '' && $endDate != '') {
+            $sql .= "WHERE FROM_UNIXTIME(ji.`createdon`,'%Y-%m-%d') BETWEEN '$startDate' AND '$endDate' ";
+          }
+          
+          // echo $sql . "<br/>";
+        $result = mysqli_query($link, $sql);
+        while($row = mysqli_fetch_array($result)) { ?>
+            <th><?php echo $row['totalpandl'] ?></th>
+        <?php } ?>
+        </tr>
+      </thead>
+    <?php } ?>
+
+    </table>
+  </div>
   </div>
 
 <?php
