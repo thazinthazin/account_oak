@@ -47,6 +47,9 @@ h2 {
   <?php
     $startDate = (isset($_POST["from_date"])) ? $_POST["from_date"] : '';
     $endDate = (isset($_POST["to_date"])) ? $_POST["to_date"] : '';
+
+    $total_income = $total_expense = $tot_pnl = 0;
+
   ?>
 
 <form action="p&l_report.php" method="post">
@@ -79,7 +82,7 @@ h2 {
       <?php 
         // totalIncome($link, '2019-08-01','2019-10-30');
         // totalIncome($link, '','');
-        totalIncome($link, $startDate, $endDate);
+       $total_income = totalIncome($link, $startDate, $endDate);
       function totalIncome($link, $startDate='', $endDate=''){
       ?>
 
@@ -116,6 +119,7 @@ h2 {
         <th></th>
         
         <?php
+
         $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
           FROM `journal_entry` AS jt
           JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
@@ -129,11 +133,16 @@ h2 {
           $sql .= "GROUP BY acj.`name`) A";
           // echo $sql . "<br/>";
         $result = mysqli_query($link, $sql);
-        while($row = mysqli_fetch_array($result)) { ?>
-            <th><?php echo $row['totalamount'] ?></th>
-        <?php } ?>
+        while($row = mysqli_fetch_array($result)) { 
+            $tot_income = $row['totalamount'];
+         } 
+         ?>
+
+        <th><?php echo $tot_income; ?></th>
       </tbody>
-  <?php } ?>
+  <?php 
+return $tot_income;
+} ?>
 
     <!-- <div class="row">
       <h3 class="pull-left">Expenses</h3>
@@ -142,7 +151,7 @@ h2 {
     <?php 
      // totalExpense($link, '2019-08-01','2019-10-30');
         // totalExpense($link, '','');
-    totalExpense($link, $startDate, $endDate);
+    $total_expense = totalExpense($link, $startDate, $endDate);
     function totalExpense($link, $startDate='', $endDate=''){
     ?>
       <thead>
@@ -191,48 +200,30 @@ h2 {
           $sql .= "GROUP BY acj.`name`) A";
           // echo $sql . "<br/>";
         $result = mysqli_query($link, $sql);
-        while($row = mysqli_fetch_array($result)) { ?>
-            <th><?php echo $row['totalamount'] ?></th>
-        <?php } ?>
+        while($row = mysqli_fetch_array($result)) { 
+        	$tot_expenses = $row['totalamount'];
+         } ?>
+         <th><?php echo $tot_expenses; ?></th>
       </tbody>
-    <?php } ?>
-
     <?php 
-     // totalExpense($link, '2019-08-01','2019-10-30');
-        // totalExpense($link, '','');
-    totalPandL($link, $startDate, $endDate);
-    function totalPandL($link, $startDate='', $endDate=''){
-    ?>
+return $tot_expenses;
+} ?>
+
+
       <thead>
         <tr>
           <th>Total Profit & Loss</th>
           <th></th>
-        <?php
-        $sql = "SELECT (SUM(A.`amount`) - SUM(B.`amount`)) AS totalpandl
-              FROM( SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
-              FROM `journal_entry` AS jt
-              JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
-              JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
-              JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
-              WHERE coa.`id` = 10 GROUP BY acj.`name`) A
-              JOIN ( SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, SUM(coa.`name`) AS coaname
-              FROM `journal_entry` AS jt
-              JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
-              JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
-              JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
-              WHERE coa.`id` = 3 GROUP BY acj.`name`) B ";
-          if ($startDate != '' && $endDate != '') {
-            $sql .= "WHERE FROM_UNIXTIME(ji.`createdon`,'%Y-%m-%d') BETWEEN '$startDate' AND '$endDate' ";
-          }
-          
-          // echo $sql . "<br/>";
-        $result = mysqli_query($link, $sql);
-        while($row = mysqli_fetch_array($result)) { ?>
-            <th><?php echo $row['totalpandl'] ?></th>
-        <?php } ?>
+          <?php
+          	
+             $tot_pnl = $total_income - $total_expense;
+             echo $tot_pnl;
+
+          ?>
+  
+
         </tr>
       </thead>
-    <?php } ?>
 
     </table>
   </div>
