@@ -135,10 +135,10 @@ h2 {
         $result = mysqli_query($link, $sql);
         while($row = mysqli_fetch_array($result)) { 
             $tot_income = $row['totalamount'];
+            $income = ($tot_income > 0) ? $tot_income : 0;
          } 
          ?>
-
-        <th><?php echo $tot_income; ?></th>
+        <th><?php echo $income; ?></th>
       </tbody>
   <?php 
 return $tot_income;
@@ -202,29 +202,32 @@ return $tot_income;
         $result = mysqli_query($link, $sql);
         while($row = mysqli_fetch_array($result)) { 
         	$tot_expenses = $row['totalamount'];
+            $expenses = ($tot_expenses > 0) ? $tot_expenses : 0;
          } ?>
-         <th><?php echo $tot_expenses; ?></th>
+         <th><?php echo $expenses; ?></th>
       </tbody>
     <?php 
 return $tot_expenses;
 } ?>
 
-
-      <thead>
+    <thead>
         <tr>
           <th>Total Profit & Loss</th>
           <th></th>
           <?php
-          	
              $tot_pnl = $total_income - $total_expense;
-             echo $tot_pnl;
-
+             $str = "";
+             // if ($tot_pnl < 0) {
+             // 	$str =  "(". abs($tot_pnl) . ")";
+             // } else {
+             // 	$str = abs($tot_pnl);
+             // }
+             $str = ($tot_pnl < 0) ? "(". abs($tot_pnl) . ")" : abs($tot_pnl);
           ?>
-  
-
+             <th><?php echo $str; ?></th>
         </tr>
       </thead>
-
+         
     </table>
   </div>
   </div>
