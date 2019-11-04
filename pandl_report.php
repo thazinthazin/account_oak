@@ -48,33 +48,28 @@ h2 {
     $startDate = (isset($_POST["from_date"])) ? $_POST["from_date"] : '';
     $endDate = (isset($_POST["to_date"])) ? $_POST["to_date"] : '';
 
-    $total_income = $total_expense = $tot_pnl = 0;
-
+    $total_income = $total_expenses = $tot_pnl = 0;
   ?>
 
-<form action="p&l_report.php" method="post">
-  <div class="input-daterange">
-    <div class="col-md-2">
-      <div class="form-group">
-        <label for="from_date">Start Date</label>
-        <input type="text" id="from_date" class="form-control" name="from_date" value="<?php echo $startDate; ?>">
-      </div>
-    </div>
+    <form action="p&l_report.php" method="post">
+      <div class="input-daterange">
+        <div class="col-md-2">
+          <div class="form-group">
+            <label for="from_date">Start Date</label>
+            <input type="text" id="from_date" class="form-control" name="from_date" value="<?php echo $startDate; ?>">
+          </div>
+        </div>
 
-    <div class="col-md-2">
-      <div class="form-group">
-        <label for="to_date">End Date</label>
-        <input type="text" id="to_date" class="form-control" name="to_date" value="<?php echo $endDate; ?>">
+        <div class="col-md-2">
+          <div class="form-group">
+            <label for="to_date">End Date</label>
+            <input type="text" id="to_date" class="form-control" name="to_date" value="<?php echo $endDate; ?>">
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <button type="submit" id="filter" class="btn btn-primary" name="filter">Filter</button>
-</form>
-    
-    <!-- <div class="row">
-      <h3 class="pull-left">Income</h3>
-    </div> -->
+      <button type="submit" id="filter" class="btn btn-primary" name="filter">Filter</button>
+    </form>
 
     <div id="order_table">
 
@@ -95,7 +90,7 @@ h2 {
       </thead>
       <tbody>
         <?php
-        $sql = "SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
+        $sql = "SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, MAX(coa.`name`) AS coaname
           FROM `journal_entry` AS jt
           JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
           JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
@@ -119,8 +114,7 @@ h2 {
         <th></th>
         
         <?php
-
-        $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, SUM(coa.`name`) AS coaname
+        $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`credit`) AS amount, MAX(coa.`name`) AS coaname
           FROM `journal_entry` AS jt
           JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
           JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
@@ -140,9 +134,9 @@ h2 {
          ?>
         <th><?php echo $income; ?></th>
       </tbody>
-  <?php 
-return $tot_income;
-} ?>
+    <?php 
+    return $tot_income;
+    } ?>
 
     <!-- <div class="row">
       <h3 class="pull-left">Expenses</h3>
@@ -151,7 +145,7 @@ return $tot_income;
     <?php 
      // totalExpense($link, '2019-08-01','2019-10-30');
         // totalExpense($link, '','');
-    $total_expense = totalExpense($link, $startDate, $endDate);
+    $total_expenses = totalExpense($link, $startDate, $endDate);
     function totalExpense($link, $startDate='', $endDate=''){
     ?>
       <thead>
@@ -163,7 +157,7 @@ return $tot_income;
       </thead>
       <tbody>
         <?php
-        $sql = "SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, SUM(coa.`name`) AS coaname
+        $sql = "SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, MAX(coa.`name`) AS coaname
           FROM `journal_entry` AS jt
           JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
           JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
@@ -187,7 +181,7 @@ return $tot_income;
         <th></th>
 
         <?php
-        $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, SUM(coa.`name`) AS coaname
+        $sql = "SELECT SUM(A.`amount`) AS totalamount FROM ( SELECT acj.`name` AS journalname, SUM(ji.`debit`) AS amount, MAX(coa.`name`) AS coaname
           FROM `journal_entry` AS jt
           JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
           JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
@@ -201,33 +195,33 @@ return $tot_income;
           // echo $sql . "<br/>";
         $result = mysqli_query($link, $sql);
         while($row = mysqli_fetch_array($result)) { 
-        	$tot_expenses = $row['totalamount'];
-            $expenses = ($tot_expenses > 0) ? $tot_expenses : 0;
+          $tot_expenses = $row['totalamount'];
+          $expenses = ($tot_expenses > 0) ? $tot_expenses : 0;
          } ?>
          <th><?php echo $expenses; ?></th>
       </tbody>
     <?php 
-return $tot_expenses;
-} ?>
+    return $tot_expenses;
+    } ?>
 
-    <thead>
+      <thead>
         <tr>
           <th>Total Profit & Loss</th>
           <th></th>
           <?php
-             $tot_pnl = $total_income - $total_expense;
+             $tot_pnl = $total_income - $total_expenses;
              $str = "";
              // if ($tot_pnl < 0) {
-             // 	$str =  "(". abs($tot_pnl) . ")";
+             //   $str =  "(". abs($tot_pnl) . ")";
              // } else {
-             // 	$str = abs($tot_pnl);
+             //   $str = abs($tot_pnl);
              // }
              $str = ($tot_pnl < 0) ? "(". abs($tot_pnl) . ")" : abs($tot_pnl);
           ?>
              <th><?php echo $str; ?></th>
         </tr>
       </thead>
-         
+
     </table>
   </div>
   </div>
