@@ -24,13 +24,20 @@ echo $OUTPUT->header();
 // $result = mysqli_query($link, $sql);
 
 $ArrFinal=[];
+$startDate = (isset($_POST["from_date"])) ? $_POST["from_date"] : '';
+$endDate = (isset($_POST["to_date"])) ? $_POST["to_date"] : '';
 
 $sql = "SELECT ji.`productid`,jt.`name`, jt.`totalamount`, acj.`name` AS journalname, FROM_UNIXTIME(ji.`createdon`,'%Y-%m-%d') AS createdon, ji.`debit`, ji.`credit`, coa.`name` AS coaname
         FROM `journal_entry` AS jt
         JOIN `account_journal` AS acj ON acj.`id` = jt.`journalid`
         JOIN `journal_item` AS ji ON ji.`journalentryid` = jt.`id`
-        JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`
-        ORDER BY jt.`name` ASC;";
+        JOIN `chart_of_account` AS coa ON coa.`id` = ji.`accountid`";
+
+        if ($startDate != '' && $endDate != '') {
+            $sql .= "WHERE FROM_UNIXTIME(ji.`createdon`,'%Y-%m-%d') BETWEEN '$startDate' AND '$endDate' ";
+          }
+          
+        $sql .= "ORDER BY jt.`name` ASC;";
 // echo $sql . "<br/>";
           if($result_all = mysqli_query($link, $sql))
           {
@@ -100,8 +107,13 @@ $sql = "SELECT ji.`productid`,jt.`name`, jt.`totalamount`, acj.`name` AS journal
 <head>
     <meta charset="UTF-8">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet"/>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
+	
 <style type="text/css">
 h2 {
   display: inline-block;
@@ -119,6 +131,26 @@ h2 {
 
     <h2 class="pull-left">Accounting Report</h2>
 
+    <form action="report.php" method="post">
+	  <div class="input-daterange">
+	    <div class="col-md-2">
+	      <div class="form-group">
+	        <label for="from_date">Start Date</label>
+	        <input type="text" id="from_date" class="form-control" name="from_date" value="<?php echo $startDate; ?>">
+	      </div>
+	    </div>
+
+	    <div class="col-md-2">
+	      <div class="form-group">
+	        <label for="to_date">End Date</label>
+	        <input type="text" id="to_date" class="form-control" name="to_date" value="<?php echo $endDate; ?>">
+	      </div>
+	    </div>
+	  </div>
+
+	  <button type="submit" id="filter" class="btn btn-primary" name="filter">Filter</button>
+	</form>
+	
      <table class="table table-bordered admintable generaltable" id="tab">
       <thead>
         <tr>
@@ -136,19 +168,21 @@ h2 {
       <tbody>
         <?php
         $count=1;
-        foreach ($tmpArr as $value) { ?>
-          <tr>
-            <td><?php echo $count; ?></td>
-            <td><?php echo $value['name'] ?></td>
-            <td><?php echo $value['journalname'] ?></td>
-            <td><?php echo $value['title'] ?></td>
-            <td><?php echo $value['totalamount'] ?></td>
-            <td><?php echo $value['debit'] ?></td>
-            <td><?php echo $value['credit'] ?></td>
-            <td><?php echo $value['coaname'] ?></td>
-            <td><?php echo $value['createdon'] ?></td>
-          </tr>
-        <?php $count++; } ?>
+        if (isset($tmpArr)) {
+        	foreach ($tmpArr as $value) { ?>
+	          <tr>
+	            <td><?php echo $count; ?></td>
+	            <td><?php echo $value['name'] ?></td>
+	            <td><?php echo $value['journalname'] ?></td>
+	            <td><?php echo $value['title'] ?></td>
+	            <td><?php echo $value['totalamount'] ?></td>
+	            <td><?php echo $value['debit'] ?></td>
+	            <td><?php echo $value['credit'] ?></td>
+	            <td><?php echo $value['coaname'] ?></td>
+	            <td><?php echo $value['createdon'] ?></td>
+	          </tr>
+        
+        <?php } $count++; } ?>
       </tbody>
     </table>
 
@@ -168,7 +202,15 @@ echo $OUTPUT->footer();
 ?>
 
 <script type="text/javascript">
-	$('#tab').on('click', 'tr', function () {
+      $(document).ready(function(){
+	 $('.input-daterange').datepicker({
+	  todayBtn:'linked',
+	  format: "yyyy-mm-dd",
+	  autoclose: true
+	 });
+	});
+	
+      $('#tab').on('click', 'tr', function () {
       $('td,th', this).css('background', '#90EE90');
   });  
 </script>
